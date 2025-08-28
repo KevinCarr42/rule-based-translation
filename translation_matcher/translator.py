@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple, Any
 
 try:
     import spacy
+
     nlp = spacy.load("en_core_web_sm")
     NLP_AVAILABLE = True
 except (ImportError, OSError):
@@ -28,11 +29,12 @@ def create_search_patterns(translations_data):
 
     return patterns
 
+
 def preserve_capitalization(original_text: str, replacement_text: str) -> str:
     """Preserve the capitalization pattern from original text in replacement"""
     if not original_text or not replacement_text:
         return replacement_text
-    
+
     if original_text.isupper():
         return replacement_text.upper()
     elif original_text.islower():
@@ -42,19 +44,20 @@ def preserve_capitalization(original_text: str, replacement_text: str) -> str:
     else:
         return replacement_text
 
+
 def detect_places_with_nlp(text: str) -> List[Tuple[int, int, str]]:
     """Use NLP to detect place names in text. Returns list of (start, end, text) tuples"""
     places = []
-    
+
     if not NLP_AVAILABLE:
         return places
-    
+
     doc = nlp(text)
     for ent in doc.ents:
         # Detect geographical entities
         if ent.label_ in ['GPE', 'LOC', 'FAC']:  # GPE=Geopolitical, LOC=Location, FAC=Facility
             places.append((ent.start_char, ent.end_char, ent.text))
-    
+
     return places
 
 
@@ -89,14 +92,14 @@ def preprocess_for_translation(text: str, translations_file="all_translations.js
     for start, end, place_text in reversed(nlp_places):  # Reverse to maintain indices
         token_counters['nlp_places'] += 1
         token = f"__PLACE_{token_counters['nlp_places']:03d}__"
-        
+
         # Check if this place has a known translation
         place_translation = None
         for place_key, translation in translations_data['translations']['place_names'].items():
             if place_key.lower() == place_text.lower():
                 place_translation = translation
                 break
-        
+
         # Store mapping
         token_mapping[token] = {
             'original_text': place_text,
@@ -104,7 +107,7 @@ def preprocess_for_translation(text: str, translations_file="all_translations.js
             'translation': place_translation,
             'should_translate': place_translation is not None
         }
-        
+
         # Replace in text
         processed_text = processed_text[:start] + token + processed_text[end:]
 
@@ -112,7 +115,7 @@ def preprocess_for_translation(text: str, translations_file="all_translations.js
     for category, terms in patterns.items():
         if category == 'place_names':
             continue  # Skip - handled by NLP above
-            
+
         category_short = category.split('_')[0].upper()
 
         for term in terms:
