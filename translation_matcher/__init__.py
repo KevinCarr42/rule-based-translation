@@ -1,6 +1,7 @@
 from .extractors.spreadsheet import extract_technical_terms, extract_species_names, extract_acronyms_abbreviations
 from .extractors.place_names import extract_place_names
 from .extractors.links import get_place_names_sources
+from .translator import preprocess_for_translation, postprocess_translation, get_translation_statistics
 from .utils import save_json
 import json
 from datetime import datetime
@@ -69,4 +70,4 @@ def generate_all_translations(spreadsheet_file="translations_spreadsheet.xlsx", 
     
     return all_translations
 
-__all__ = ['generate_all_translations']
+__all__ = ['generate_all_translations', 'preprocess_for_translation', 'postprocess_translation', 'get_translation_statistics']
