@@ -1,24 +1,70 @@
 import json
 import re
-from typing import Dict, List, Tuple, Any
-
-try:
-    import spacy
-
-    nlp = spacy.load("en_core_web_sm")
-    NLP_AVAILABLE = True
-except (ImportError, OSError):
-    print("Warning: spaCy not available. Install with: pip install spacy && python -m spacy download en_core_web_sm")
-    NLP_AVAILABLE = False
+from typing import Dict, List, Tuple, Any, Optional
+import subprocess
+import sys
+import spacy
 
 
-def load_translations(json_file="all_translations.json"):
+def ensure_spacy_model(model_name="en_core_web_sm"):
+    try:
+        nlp = spacy.load(model_name)
+        return nlp
+    except OSError:
+        print(f"Model '{model_name}' not found. Downloading now...")
+        subprocess.check_call([sys.executable, "-m", "spacy", "download", model_name])
+        print(f"Model '{model_name}' downloaded successfully!")
+        return spacy.load(model_name)
+
+
+nlp = ensure_spacy_model("en_core_web_sm")
+
+
+class SafeTokenGenerator:
+    def __init__(self):
+        self.counter = 1
+        self.token_map = {}
+        self.reverse_map = {}
+
+    def create_token(self, original_text: str) -> str:
+        """Create or retrieve token for given text"""
+        if original_text in self.reverse_map:
+            return self.reverse_map[original_text]
+
+        if self.counter > 1024:
+            raise ValueError("Exceeded maximum number of tokens (1024)")
+
+        token = f"<KEEP{self.counter}>"
+
+        self.token_map[token] = original_text
+        self.reverse_map[original_text] = token
+        self.counter += 1
+
+        return token
+
+    def get_original(self, token: str) -> Optional[str]:
+        """Safely get original text, with error handling"""
+        return self.token_map.get(token, None)
+
+    def replace_all_tokens(self, text: str) -> str:
+        """Replace all tokens in text with their original values"""
+        if not self.token_map:
+            return text
+
+        result = text
+        for token, original in self.token_map.items():
+            result = result.replace(token, original)
+
+        return result
+
+
+def load_translations(json_file: str = "all_translations.json") -> Dict:
     """Load all translation data from JSON file"""
     with open(json_file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
-def create_search_patterns(translations_data):
+def create_search_patterns(translations_data: Dict) -> Dict[str, List[str]]:
     """Create search patterns organized by category for efficient matching"""
     patterns = {}
 
@@ -30,27 +76,26 @@ def create_search_patterns(translations_data):
     return patterns
 
 
-def preserve_capitalization(original_text: str, replacement_text: str) -> str:
-    """Preserve the capitalization pattern from original text in replacement"""
-    if not original_text or not replacement_text:
-        return replacement_text
+def preserve_capitalization(original: str, replacement: str) -> str:
+    """Preserve capitalization pattern from original text"""
+    if not original or not replacement:
+        return replacement
 
-    if original_text.isupper():
-        return replacement_text.upper()
-    elif original_text.islower():
-        return replacement_text.lower()
-    elif original_text[0].isupper():
-        return replacement_text.capitalize()
-    else:
-        return replacement_text
+    if original.isupper():
+        return replacement.upper()
+    elif original.islower():
+        return replacement.lower()
+    elif original[0].isupper() and len(original) > 1:
+        if original[1:].islower():
+            return replacement.capitalize()
+        else:
+            return replacement
+    return replacement
 
 
 def detect_places_with_nlp(text: str) -> List[Tuple[int, int, str]]:
     """Use NLP to detect place names in text. Returns list of (start, end, text) tuples"""
     places = []
-
-    if not NLP_AVAILABLE:
-        return places
 
     doc = nlp(text)
     for ent in doc.ents:
@@ -61,155 +106,161 @@ def detect_places_with_nlp(text: str) -> List[Tuple[int, int, str]]:
     return places
 
 
-def preprocess_for_translation(text: str, translations_file="all_translations.json") -> Tuple[str, Dict[str, Any]]:
+def preprocess_for_translation(
+        text: str,
+        translations_file: str = "all_translations.json"
+) -> Tuple[str, SafeTokenGenerator, Dict[str, Tuple[str, str]]]:
     """
     Preprocess text for translation by replacing translatable terms with tokens.
-    
+
     Args:
-        text (str): Input text to preprocess
-        translations_file (str): Path to translations JSON file
-        
+        text: Input text to preprocess
+        translations_file: Path to translations JSON file
+
     Returns:
-        Tuple[str, Dict]: (processed_text, token_mapping)
-            - processed_text: Text with terms replaced by tokens
-            - token_mapping: Dictionary mapping tokens to original terms and translations
+        Tuple containing:
+        - processed_text: Text with terms replaced by tokens
+        - token_generator: SafeTokenGenerator instance with all mappings
+        - translation_map: Dict mapping tokens to (original, translation) pairs
     """
     translations_data = load_translations(translations_file)
     patterns = create_search_patterns(translations_data)
 
     processed_text = text
-    token_mapping = {}
-    token_counters = {
-        'technical_terms': 0,
-        'species_names': 0,
-        'place_names': 0,
-        'acronyms_abbreviations': 0,
-        'nlp_places': 0  # For NLP-detected places
-    }
+    token_generator = SafeTokenGenerator()
+    translation_map = {}
 
-    # Step 1: First detect NLP places and tokenize them
+    # Track what's already been tokenized to avoid overlaps
+    tokenized_spans = []
+
+    def is_overlapping(start: int, end: int) -> bool:
+        """Check if a span overlaps with already tokenized spans"""
+        for tok_start, tok_end in tokenized_spans:
+            if not (end <= tok_start or start >= tok_end):
+                return True
+        return False
+
+    # Step 1: Process NLP-detected places
     nlp_places = detect_places_with_nlp(processed_text)
-    for start, end, place_text in reversed(nlp_places):  # Reverse to maintain indices
-        token_counters['nlp_places'] += 1
-        token = f"__PLACE_{token_counters['nlp_places']:03d}__"
+
+    # Sort by position (reverse to maintain indices)
+    nlp_places.sort(key=lambda x: x[0], reverse=True)
+
+    for start, end, place_text in nlp_places:
+        if is_overlapping(start, end):
+            continue
 
         # Check if this place has a known translation
         place_translation = None
-        for place_key, translation in translations_data['translations']['place_names'].items():
+        for place_key, translation in translations_data['translations'].get('place_names', {}).items():
             if place_key.lower() == place_text.lower():
                 place_translation = translation
                 break
 
-        # Store mapping
-        token_mapping[token] = {
-            'original_text': place_text,
-            'category': 'nlp_places',
-            'translation': place_translation,
-            'should_translate': place_translation is not None
-        }
+        # Create token for ORIGINAL text
+        token = token_generator.create_token(place_text)
 
-        # Replace in text
+        # Store translation info for post-processing
+        if place_translation and place_translation != 'None':
+            translation_map[token] = (place_text, place_translation)
+
+        # Replace with token
         processed_text = processed_text[:start] + token + processed_text[end:]
+        tokenized_spans.append((start, end))
 
-    # Step 2: Process dictionary-based terms (excluding place_names since NLP handles those)
+    # Step 2: Process dictionary-based terms
     for category, terms in patterns.items():
         if category == 'place_names':
-            continue  # Skip - handled by NLP above
-
-        category_short = category.split('_')[0].upper()
+            continue  # Already handled by NLP
 
         for term in terms:
-            # Case-insensitive search for the term as whole words/phrases
-            # Use word boundaries for single words, but allow phrase matching
+            # Case-insensitive search for the term
             if ' ' in term:
                 # Multi-word phrase - match exactly
                 pattern = re.compile(re.escape(term), re.IGNORECASE)
             else:
-                # Single word - use word boundaries to avoid partial matches
+                # Single word - use word boundaries
                 pattern = re.compile(r'\b' + re.escape(term) + r'\b', re.IGNORECASE)
 
             matches = list(pattern.finditer(processed_text))
 
-            for match in reversed(matches):  # Reverse to maintain indices
-                original_text = match.group()
+            for match in reversed(matches):
                 start, end = match.span()
 
-                # Create token
-                token_counters[category] += 1
-                token = f"__{category_short}_{token_counters[category]:03d}__"
+                if is_overlapping(start, end):
+                    continue
 
-                # Get the correct translation key (use original case from translations)
+                original_text = match.group()
+
+                # Get the correct translation key
                 translation_key = None
                 for original_key in translations_data['translations'][category].keys():
                     if original_key.lower() == term.lower():
                         translation_key = original_key
                         break
 
-                # Store mapping
-                token_mapping[token] = {
-                    'original_text': original_text,
-                    'category': category,
-                    'translation': translations_data['translations'][category].get(translation_key, None) if translation_key else None,
-                    'should_translate': True
-                }
+                # Get translation
+                translation = (translations_data['translations'][category].get(translation_key, None)
+                               if translation_key else None)
 
-                # Replace in text
+                # Create token for ORIGINAL text
+                token = token_generator.create_token(original_text)
+
+                # Store translation info if available
+                if translation and translation != 'None':
+                    # Preserve original capitalization in the translation
+                    translation_with_caps = preserve_capitalization(original_text, translation)
+                    translation_map[token] = (original_text, translation_with_caps)
+
+                # Replace with token
                 processed_text = processed_text[:start] + token + processed_text[end:]
+                tokenized_spans.append((start, end))
 
-    return processed_text, token_mapping
+    return processed_text, token_generator, translation_map
 
 
-def postprocess_translation(translated_text: str, token_mapping: Dict[str, Any]) -> str:
+def postprocess_translation(
+        translated_text: str,
+        token_generator: SafeTokenGenerator,
+        translation_map: Dict[str, Tuple[str, str]]
+) -> str:
     """
-    Postprocess translated text by replacing tokens with appropriate translations.
-    
+    Postprocess translated text by replacing tokens with proper translations.
+
     Args:
-        translated_text (str): Text output from translation model
-        token_mapping (Dict): Token mapping from preprocess_for_translation
-        
+        translated_text: Text output from translation model
+        token_generator: Token generator from preprocessing
+        translation_map: Mapping of tokens to translations
+
     Returns:
-        str: Final text with tokens replaced by proper translations or original terms
+        Final text with tokens replaced by proper translations
     """
     result_text = translated_text
 
-    # Process tokens - extract number from token format __CATEGORY_NUM__
-    def extract_token_number(token):
-        try:
-            parts = token.split('_')
-            # Find the numeric part (should be the last part before the final __)
-            for part in reversed(parts):
-                if part.isdigit():
-                    return int(part)
-            return 0
-        except:
-            return 0
-
-    # Sort tokens by number in reverse order
-    tokens = sorted(token_mapping.keys(), key=extract_token_number, reverse=True)
-
-    for token in tokens:
+    # Replace tokens with translations or originals
+    for token in token_generator.token_map.keys():
         if token in result_text:
-            mapping = token_mapping[token]
-
-            if mapping['should_translate'] and mapping['translation'] and mapping['translation'] != 'None':
-                # Use the translation with preserved capitalization
-                replacement = preserve_capitalization(mapping['original_text'], mapping['translation'])
+            if token in translation_map:
+                # Use the predetermined translation
+                original, translation = translation_map[token]
+                result_text = result_text.replace(token, translation)
             else:
-                # Use original text (no translation available or shouldn't translate)
-                replacement = mapping['original_text']
-
-            result_text = result_text.replace(token, replacement)
+                # No translation available, use original
+                original = token_generator.get_original(token)
+                if original:
+                    result_text = result_text.replace(token, original)
 
     return result_text
 
 
-def get_translation_statistics(token_mapping: Dict[str, Any]) -> Dict[str, int]:
+def get_translation_statistics(
+        token_generator: SafeTokenGenerator,
+        translation_map: Dict[str, Tuple[str, str]]
+) -> Dict[str, Any]:
     """Get statistics about what was found and processed"""
-    stats = {}
-    for token, mapping in token_mapping.items():
-        category = mapping['category']
-        if category not in stats:
-            stats[category] = 0
-        stats[category] += 1
-
-    return stats
+    return {
+        "total_tokens": len(token_generator.token_map),
+        "tokens_with_translations": len(translation_map),
+        "tokens_without_translations": len(token_generator.token_map) - len(translation_map),
+        "unique_terms": len(token_generator.reverse_map)
+    }
