@@ -1,11 +1,11 @@
 {
   "metadata": {
-    "generated_at": "2025-09-04T12:48:11.762379",
+    "generated_at": "2025-09-04T13:04:09.909111",
     "source_spreadsheet": "translations_spreadsheet.xlsx",
     "total_categories": 4
   },
   "translations": {
-    "technical_terms": {
+    "nomenclature": {
       "en millier de tonnes": "000s mt",
       "abiotiques": "abiotic",
       "surveillance acoustique": "acoustic monitoring",
@@ -197,7 +197,7 @@
       "Croissance de la classe d’âge": "Yearclass Growth",
       "Zooplancton": "Zooplankton"
     },
-    "species_names": {
+    "taxon": {
       "Anguille d'Amérique": "American Eel",
       "Homard d'Amérique": "American Lobster",
       "Plie canadienne": "American Plaice",
@@ -242,7 +242,7 @@
       "Limande à queue jaune": "Yellowtail Flounder",
       "moule zébrée": "Zebra mussel"
     },
-    "acronyms_abbreviations": {
+    "acronym": {
       "RAA": "AAR",
       "Règlement sur les activités d’aquaculture": "Aquaculture Activities Regulations",
       "GCC": "CCG",
@@ -303,7 +303,7 @@
       "total autorisé des captures": "total allowable catch",
       "Z": "Z"
     },
-    "place_names": {
+    "site": {
       "Wind Mont": "Wind Mountain",
       "Mont Turbulent": "Mount Turbulent",
       "Seven Sisters Mont": "Seven Sisters Mountain",

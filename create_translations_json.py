@@ -145,10 +145,10 @@ def generate_all_translations(spreadsheet_file="translations_spreadsheet.xlsx", 
             'total_categories': 4
         },
         'translations': {
-            'technical_terms': technical_terms,
-            'species_names': species_names,
-            'acronyms_abbreviations': acronyms_abbreviations,
-            'place_names': place_names
+            'nomenclature': technical_terms,
+            'taxon': species_names,
+            'acronym': acronyms_abbreviations,
+            'site': place_names
         },
         'sources': {
             'place_names_links': place_names_sources
