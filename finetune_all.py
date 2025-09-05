@@ -5,7 +5,7 @@ MODELS = {
     "m2m100_418m": {
         "batch_size": 12,
         "grad_accum": 2,
-        "lr": 2e-4,
+        "lr": 1.7e-4,
         "lora_r": 32,
         "lora_alpha": 64,
         "lora_dropout": 0.05,
@@ -15,7 +15,7 @@ MODELS = {
     "mbart50_mmt_fr": {
         "batch_size": 8,
         "grad_accum": 2,
-        "lr": 1.5e-4,
+        "lr": 1.275e-4,
         "lora_r": 32,
         "lora_alpha": 64,
         "lora_dropout": 0.05,
@@ -25,7 +25,7 @@ MODELS = {
     "mbart50_mmt_en": {
         "batch_size": 8,
         "grad_accum": 2,
-        "lr": 1.5e-4,
+        "lr": 1.275e-4,
         "lora_r": 32,
         "lora_alpha": 64,
         "lora_dropout": 0.05,
@@ -35,7 +35,7 @@ MODELS = {
     "opus_mt_en_fr": {
         "batch_size": 16,
         "grad_accum": 2,
-        "lr": 3e-4,
+        "lr": 2.55e-4,
         "lora_r": 32,
         "lora_alpha": 64,
         "lora_dropout": 0.05,
@@ -45,7 +45,7 @@ MODELS = {
     "opus_mt_fr_en": {
         "batch_size": 16,
         "grad_accum": 2,
-        "lr": 3e-4,
+        "lr": 2.55e-4,
         "lora_r": 32,
         "lora_alpha": 64,
         "lora_dropout": 0.05,
@@ -54,13 +54,13 @@ MODELS = {
     },
 }
 
-TRAINING_FILE = "training_replacements.jsonl"
+TRAINING_FILE = "training_replacements_sampled.jsonl"
 OUTPUT_ROOT = "outputs"
-EPOCHS = 1.0
+EPOCHS = 0.1
 LOGGING_STEPS = 50
 SEED = 42
 WARMUP_RATIO = 0.03
-VAL_RATIO = 0.05
+VAL_RATIO = 0.12
 MAX_SOURCE_LEN = 512
 MAX_TARGET_LEN = 512
 BF16 = True

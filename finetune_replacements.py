@@ -5,7 +5,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from datasets import load_dataset
 from transformers import (
     AutoTokenizer, AutoModelForSeq2SeqLM, Seq2SeqTrainer, Seq2SeqTrainingArguments,
-    DataCollatorForSeq2Seq, BitsAndBytesConfig
+    DataCollatorForSeq2Seq, BitsAndBytesConfig, EarlyStoppingCallback
 )
 from peft import LoraConfig, get_peft_model
 
@@ -183,6 +183,9 @@ def build_trainer(which, tokenizer, model, dataset_processed, output_directory, 
         logging_steps=logging_steps,
         save_steps=save_steps,
         save_total_limit=3,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
         predict_with_generate=False,
         report_to=["none"],
         bf16=bf16,
@@ -202,12 +205,14 @@ def build_trainer(which, tokenizer, model, dataset_processed, output_directory, 
         trainer = Seq2SeqTrainer(model=model, args=training_args,
                                  train_dataset=dataset_processed["train"],
                                  eval_dataset=dataset_processed["eval"],
-                                 processing_class=tokenizer, data_collator=data_collator)
+                                 processing_class=tokenizer, data_collator=data_collator,
+                                 callbacks=[EarlyStoppingCallback(early_stopping_patience=3)])
     except TypeError:
         trainer = Seq2SeqTrainer(model=model, args=training_args,
                                  train_dataset=dataset_processed["train"],
                                  eval_dataset=dataset_processed["eval"],
-                                 tokenizer=tokenizer, data_collator=data_collator)
+                                 tokenizer=tokenizer, data_collator=data_collator,
+                                 callbacks=[EarlyStoppingCallback(early_stopping_patience=3)])
     return trainer
 
 
