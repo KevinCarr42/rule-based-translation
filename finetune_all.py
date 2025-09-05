@@ -10,7 +10,7 @@ MODELS = {
         "lora_alpha": 64,
         "lora_dropout": 0.05,
         "save_steps": 1000,
-        "eval_steps": 1000,
+        "eval_steps": 500,
     },
     "mbart50_mmt_fr": {
         "batch_size": 8,
@@ -20,7 +20,7 @@ MODELS = {
         "lora_alpha": 64,
         "lora_dropout": 0.05,
         "save_steps": 1000,
-        "eval_steps": 1000,
+        "eval_steps": 500,
     },
     "mbart50_mmt_en": {
         "batch_size": 8,
@@ -30,7 +30,7 @@ MODELS = {
         "lora_alpha": 64,
         "lora_dropout": 0.05,
         "save_steps": 1000,
-        "eval_steps": 1000,
+        "eval_steps": 500,
     },
     "opus_mt_en_fr": {
         "batch_size": 16,
@@ -40,7 +40,7 @@ MODELS = {
         "lora_alpha": 64,
         "lora_dropout": 0.05,
         "save_steps": 1000,
-        "eval_steps": 1000,
+        "eval_steps": 500,
     },
     "opus_mt_fr_en": {
         "batch_size": 16,
@@ -50,13 +50,13 @@ MODELS = {
         "lora_alpha": 64,
         "lora_dropout": 0.05,
         "save_steps": 1000,
-        "eval_steps": 1000,
+        "eval_steps": 500,
     },
 }
 
 TRAINING_FILE = "training_replacements_sampled.jsonl"
 OUTPUT_ROOT = "outputs"
-EPOCHS = 0.1
+EPOCHS = 1.0
 LOGGING_STEPS = 50
 SEED = 42
 WARMUP_RATIO = 0.03
@@ -73,6 +73,7 @@ DISABLE_TQDM = True
 def main():
     os.makedirs(OUTPUT_ROOT, exist_ok=True)
     for model_name, cfg in MODELS.items():
+        print("\nFinetuning", model_name)
         output_dir = os.path.join(OUTPUT_ROOT, model_name)
         os.makedirs(output_dir, exist_ok=True)
         finetune_model(
