@@ -54,8 +54,7 @@ MODELS = {
     },
 }
 
-TRAINING_FILE = "../Data/training_replacements_sampled.jsonl"
-OUTPUT_ROOT = "outputs"
+
 EPOCHS = 1.0
 LOGGING_STEPS = 50
 SEED = 42
@@ -70,15 +69,15 @@ DEVICE_MAP = "auto"
 DISABLE_TQDM = True
 
 
-def main():
-    os.makedirs(OUTPUT_ROOT, exist_ok=True)
+def train_all(training_file, output_root):
+    os.makedirs(output_root, exist_ok=True)
     for model_name, cfg in MODELS.items():
         print("\nFinetuning", model_name)
-        output_dir = os.path.join(OUTPUT_ROOT, model_name)
+        output_dir = os.path.join(output_root, model_name)
         os.makedirs(output_dir, exist_ok=True)
         finetune_model(
             which=model_name,
-            data_path=TRAINING_FILE,
+            data_path=training_file,
             output_directory=output_dir,
             learning_rate=float(cfg["lr"]),
             batch_size=int(cfg["batch_size"]),
@@ -104,4 +103,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    print("training with 25k samples...")
+    train_all(
+        training_file="../Data/training_replacements_sampled.jsonl",
+        output_root="outputs_25k"
+    )
+    print("training with 100k samples...")
+    train_all(
+        training_file="../Data/training_replacements_sampled_100k.jsonl",
+        output_root="outputs_100k"
+    )
