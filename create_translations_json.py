@@ -128,7 +128,7 @@ def get_place_names_sources(file_path):
         return []
 
 
-def generate_all_translations(spreadsheet_file="translations_spreadsheet.xlsx", output_file="all_translations.json"):
+def generate_all_translations(spreadsheet_file="translations_spreadsheet.xlsx", output_file="../Data/preferential_translations.json"):
     print(f"Generating translation dictionaries from {spreadsheet_file}...")
     print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     

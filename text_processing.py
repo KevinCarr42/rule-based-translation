@@ -19,7 +19,7 @@ def ensure_spacy_model(model_name="en_core_web_sm"):
 nlp = ensure_spacy_model("en_core_web_sm")
 
 
-def load_translations(json_file="all_translations.json"):
+def load_translations(json_file="../Data/preferential_translations.json"):
     with open(json_file, 'r', encoding='utf-8') as f:
         return json.load(f)
 
@@ -65,7 +65,7 @@ def detect_places_with_nlp(text):
     return places
 
 
-def preprocess_for_translation(text, translations_file="all_translations.json"):
+def preprocess_for_translation(text, translations_file="../Data/preferential_translations.json"):
     translations_data = load_translations(translations_file)
     patterns = create_search_patterns(translations_data)
     

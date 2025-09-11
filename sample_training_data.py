@@ -123,8 +123,8 @@ def sample_training_data(input_file, output_file, target_samples=25000, general_
 if __name__ == "__main__":
     random.seed(42)  # For reproducible sampling
     sample_training_data(
-        input_file="training_replacements.jsonl",
-        output_file="training_replacements_sampled.jsonl",
+        input_file="../Data/training_replacements.jsonl",
+        output_file="../Data/training_replacements_sampled.jsonl",
         target_samples=25000,
         general_ratio=0.15
     )

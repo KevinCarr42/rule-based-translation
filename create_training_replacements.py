@@ -67,8 +67,8 @@ def choose_random_int():
 
 def process_training_data():
     print("Loading data...")
-    training_data = load_jsonl('training_data.jsonl')
-    translations = load_translations('all_translations.json')
+    training_data = load_jsonl('../Data/training_data.jsonl')
+    translations = load_translations('../Data/preferential_translations.json')
     
     print("Building indexes...")
     french_index, english_index = build_term_index(translations)
@@ -111,7 +111,7 @@ def process_training_data():
             })
     
     print(f"Writing {len(results)} results to training_replacements.jsonl...")
-    with open('training_replacements.jsonl', 'w', encoding='utf-8') as f:
+    with open('../Data/training_replacements.jsonl', 'w', encoding='utf-8') as f:
         for result in results:
             f.write(json.dumps(result, ensure_ascii=False) + '\n')
     

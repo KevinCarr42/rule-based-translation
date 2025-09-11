@@ -54,7 +54,7 @@ MODELS = {
     },
 }
 
-TRAINING_FILE = "training_replacements_sampled.jsonl"
+TRAINING_FILE = "../Data/training_replacements_sampled.jsonl"
 OUTPUT_ROOT = "outputs"
 EPOCHS = 1.0
 LOGGING_STEPS = 50
