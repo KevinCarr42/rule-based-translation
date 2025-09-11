@@ -3,30 +3,55 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from peft import PeftModel
 
 translation_models = {
-    "m2m100_418m": {
+    "m2m100_418m_25k": {
         "base_model": "../Data/merged/m2m100_418m",
-        "lora_dir": "outputs/m2m100_418m/lora",
-        "out_dir": "../Data/merged_v2/m2m100_418m"
+        "lora_dir": "outputs_25k/m2m100_418m/lora",
+        "out_dir": "../Data/merged_25k/m2m100_418m"
     },
-    "mbart50_mmt_fr": {
+    "mbart50_mmt_fr_25k": {
         "base_model": "../Data/merged/mbart50_mmt_fr",
-        "lora_dir": "outputs/mbart50_mmt_fr/lora",
-        "out_dir": "../Data/merged_v2/mbart50_mmt_fr"
+        "lora_dir": "outputs_25k/mbart50_mmt_fr/lora",
+        "out_dir": "../Data/merged_25k/mbart50_mmt_fr"
     },
-    "mbart50_mmt_en": {
+    "mbart50_mmt_en_25k": {
         "base_model": "../Data/merged/mbart50_mmt_en",
-        "lora_dir": "outputs/mbart50_mmt_en/lora",
-        "out_dir": "../Data/merged_v2/mbart50_mmt_en"
+        "lora_dir": "outputs_25k/mbart50_mmt_en/lora",
+        "out_dir": "../Data/merged_25k/mbart50_mmt_en"
     },
-    "opus_mt_en_fr": {
+    "opus_mt_en_fr_25k": {
         "base_model": "../Data/merged/opus_mt_en_fr",
-        "lora_dir": "outputs/opus_mt_en_fr/lora",
-        "out_dir": "../Data/merged_v2/opus_mt_en_fr"
+        "lora_dir": "outputs_25k/opus_mt_en_fr/lora",
+        "out_dir": "../Data/merged_25k/opus_mt_en_fr"
     },
-    "opus_mt_fr_en": {
+    "opus_mt_fr_en_25k": {
         "base_model": "../Data/merged/opus_mt_fr_en",
-        "lora_dir": "outputs/opus_mt_fr_en/lora",
-        "out_dir": "../Data/merged_v2/opus_mt_fr_en"
+        "lora_dir": "outputs_25k/opus_mt_fr_en/lora",
+        "out_dir": "../Data/merged_25k/opus_mt_fr_en"
+    },
+    "m2m100_418m_100k": {
+        "base_model": "../Data/merged/m2m100_418m",
+        "lora_dir": "outputs_100k/m2m100_418m/lora",
+        "out_dir": "../Data/merged_100k/m2m100_418m"
+    },
+    "mbart50_mmt_fr_100k": {
+        "base_model": "../Data/merged/mbart50_mmt_fr",
+        "lora_dir": "outputs_100k/mbart50_mmt_fr/lora",
+        "out_dir": "../Data/merged_100k/mbart50_mmt_fr"
+    },
+    "mbart50_mmt_en_100k": {
+        "base_model": "../Data/merged/mbart50_mmt_en",
+        "lora_dir": "outputs_100k/mbart50_mmt_en/lora",
+        "out_dir": "../Data/merged_100k/mbart50_mmt_en"
+    },
+    "opus_mt_en_fr_100k": {
+        "base_model": "../Data/merged/opus_mt_en_fr",
+        "lora_dir": "outputs_100k/opus_mt_en_fr/lora",
+        "out_dir": "../Data/merged_100k/opus_mt_en_fr"
+    },
+    "opus_mt_fr_en_100k": {
+        "base_model": "../Data/merged/opus_mt_fr_en",
+        "lora_dir": "outputs_100k/opus_mt_fr_en/lora",
+        "out_dir": "../Data/merged_100k/opus_mt_fr_en"
     },
 }
 

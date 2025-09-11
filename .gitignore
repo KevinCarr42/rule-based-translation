@@ -6,5 +6,5 @@ reference/
 __pycache__/
 abandoned/
 *.json*
-outputs/
+outputs*/
 console_output.txt
