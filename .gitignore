@@ -7,3 +7,4 @@ __pycache__/
 abandoned/
 *.json*
 outputs/
+console_output.txt
