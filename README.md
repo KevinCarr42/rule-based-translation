@@ -25,7 +25,7 @@ The token design underwent several iterations to prevent accidental translation:
 4. **Final Solution**: Simple word-based tokens (`SITE0013`, `ACRONYM0001`, `NOMENCLATURE0008`, `TAXON0045`) chosen for language-neutral spelling
 
 ### Additional Fine-Tuning
-An additional layer of finetuning was added to the translation models to train them to properly handle translation tokens. This fine-tuning had the added benefit of training the models to treat the translation tokens with the correct context, and as the correct part-of-speech.
+An additional layer of fine-tuning was implemented and evaluated. However, this was found to decrease the overall quality of the translations. Thus, additional fine-tuning was not included in the final translation models.
 
 ## Challenges Addressed
 
@@ -38,21 +38,18 @@ An additional layer of finetuning was added to the translation models to train t
 
 ### Token Selection Strategy
 - **SITE**: Identical spelling in English and French
-- **NOMENCLATURE**: Identical spelling in both languages  
+- **NOMENCLATURE**: Identical spelling in both languages
 - **TAXON**: Identical spelling in both languages
 - **ACRONYM**: Commonly borrowed word in French, `ACRONYM0001` is unlikely to be translated to `ACRONYME0001`
 
 ### Error Prevention
 - Pre-replacement validation ensures all tokens are accounted for
-- Automatic fallback to standard translation if token integrity is compromised
-
-### Fine-Tuning
-- This fine-tuning was used to train models to properly handle translation tokens
-- Models were trained to treat the translation tokens with the correct context, and as the correct part-of-speech.
+- If token validation fails, translations are repeated under various configurations 
+- If all configurations fail token validation, the translation model uses a fallback of translation without token replacement
 
 ## Outcomes
 
-The rule-based system successfully preserves critical scientific terminology while maintaining translation quality. Additional fine-tuning on token-aware datasets reduced translation errors by approximately 50%, though some edge cases remain. The system provides a robust foundation for consistent, accurate scientific translation.
+The rule-based system successfully preserves critical scientific terminology while maintaining translation quality. The system provides a robust foundation for consistent, accurate scientific translation.
 
 ## All Phases
 
